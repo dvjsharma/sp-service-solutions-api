@@ -245,8 +245,11 @@ def custom_post_method(request, hash, *args, **kwargs):
         required_fields = Field.objects.filter(
             skeleton=Skeleton.getSkeletonByInstance(instance=instance), required=True)
         required_fields_ids = [field.id for field in required_fields]
-        for id in data:
-            if int(id["id"]) not in required_fields_ids:
+        for id in required_fields_ids:
+            for data_id in data:
+                if int(data_id["id"]) == id:
+                    break
+            else:
                 return JsonResponse({"detail": "Required fields are missing"}, status=400)
 
         response = populate_answers_and_responses(data=data, instance=instance)
@@ -276,8 +279,11 @@ def custom_post_method(request, hash, *args, **kwargs):
         required_fields = Field.objects.filter(
             skeleton=Skeleton.getSkeletonByInstance(instance=instance), required=True)
         required_fields_ids = [field.id for field in required_fields]
-        for id in data:
-            if int(id["id"]) not in required_fields_ids:
+        for id in required_fields_ids:
+            for data_id in data:
+                if int(data_id["id"]) == id:
+                    break
+            else:
                 return JsonResponse({"detail": "Required fields are missing"}, status=400)
 
         response = populate_answers_and_responses(data=data, user=user, instance=instance)
