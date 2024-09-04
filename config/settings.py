@@ -67,7 +67,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = "config.urls"
 
 # Get the CORS allowed origins from the environment variable
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 
 # Template settings
 TEMPLATES = [
@@ -95,7 +95,7 @@ DATABASES = {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.mysql"),
         "NAME": os.getenv("DB_NAME", "spapi"),
         "USER": os.getenv("DB_USER", "root"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
         "HOST": os.getenv("DB_HOST", "127.0.0.1"),
         "PORT": os.getenv("DB_PORT", "3306"),
     }

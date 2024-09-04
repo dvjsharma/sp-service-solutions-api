@@ -103,7 +103,7 @@ def test_user_deactivation(api_client, admin_user):
         'first_name': 'Test',
         'last_name': 'User'
     }
-    response = api_client.post(url, data, format='json')
+    api_client.post(url, data, format='json')
     user = User.objects.get(username='testuser2')
     assert user.is_deactivated is False
     assert user.is_active is False
