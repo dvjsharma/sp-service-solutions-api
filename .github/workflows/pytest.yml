@@ -1,0 +1,58 @@
+# Brief: pytest.yml testing action
+
+# Description: GitHub Actions workflow to run tests using pytest.
+
+# Author: Divij Sharma <divijs75@gmail.com>
+
+name: Test with pytest
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: spapi
+          MYSQL_USER: root
+          MYSQL_PASSWORD: ""
+          MYSQL_ROOT_PASSWORD: ""
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping --silent" --health-interval 10s --health-timeout 5s --health-retries 3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Wait for MySQL to be ready
+      run: |
+        until mysqladmin ping --host=127.0.0.1 --port=3306 --silent; do
+          echo 'Waiting for MySQL...'
+          sleep 5
+        done
+
+    - name: Run migrations
+      run: python manage.py migrate
+
+    - name: Run tests
+      run: pytest --disable-warnings
