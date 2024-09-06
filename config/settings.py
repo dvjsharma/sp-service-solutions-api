@@ -26,7 +26,8 @@ SECRET_KEY = SECRET_KEY = os.environ.get('PROJECT_SECRET_KEY', 'default')
 
 # Get the debug mode from the environment variable
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('ENV', 'production') == 'development'
+env_development = os.environ.get('ENV_DEVELOPMENT', 'false')
+DEBUG = env_development.lower() == 'true'
 
 # Get the allowed hosts from the environment variable
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
