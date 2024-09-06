@@ -27,6 +27,11 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd "mysqladmin ping --silent" --health-interval 10s --health-timeout 5s --health-retries 3
+    
+    env:
+      GOOGLE_OAUTH2_KEY: ${{ secrets.GOOGLE_OAUTH2_KEY }}
+      GOOGLE_OAUTH2_SECRET: ${{ secrets.GOOGLE_OAUTH2_SECRET }}
+      SOCIAL_AUTH_ALLOWED_REDIRECT_URIS: ${{ secrets.SOCIAL_AUTH_ALLOWED_REDIRECT_URIS }}
 
     steps:
     - name: Checkout code
