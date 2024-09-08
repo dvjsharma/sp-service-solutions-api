@@ -331,3 +331,25 @@ def populate_answers_and_responses(data, instance, user=None):
         raise e
     return_respnse = ResponseSerializer(response).data
     return return_respnse
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def all_open_forms(*args, **kwargs):
+    """
+    Get all the open forms for all the instances
+    """
+    domain = settings.DOMAIN
+    public_forms_hashes = []
+    try:
+        all_skeletons = Skeleton.objects.all()
+        for skeleton in all_skeletons:
+            if skeleton.instance.instance_auth_type == 0x1 << 0:
+                public_forms_hashes.append({
+                    'title': skeleton.title,
+                    'link': domain + '/' + skeleton.instance.hash,
+                    'created_at': skeleton.created_at})
+    except Exception as e:
+        return JsonResponse({"detail": str(e)}, status=500)
+
+    return JsonResponse({"publicForms": public_forms_hashes}, status=200)
