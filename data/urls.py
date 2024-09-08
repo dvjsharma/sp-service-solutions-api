@@ -21,5 +21,5 @@ urlpatterns = [
     path('<str:hash>/responses/<int:pk>', ResponseDetailView.as_view(), name='response-detail'),
     path('<str:hash>/voter/get-data', custom_get_method, name='form-get'),
     path('<str:hash>/voter/post-data', custom_post_method, name='form-post'),
-    path('voter/open-forms', all_open_forms, name='open-forms'),
+    path('voter/open-forms', all_open_forms, name='open-polls'),
 ]

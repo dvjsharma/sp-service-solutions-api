@@ -345,7 +345,10 @@ def all_open_forms(*args, **kwargs):
         all_skeletons = Skeleton.objects.all()
         for skeleton in all_skeletons:
             if skeleton.instance.instance_auth_type == 0x1 << 0:
-                public_forms_hashes.append(domain + '/' + skeleton.instance.hash)
+                public_forms_hashes.append({
+                    'title': skeleton.title,
+                    'link': domain + '/' + skeleton.instance.hash,
+                    'created_at': skeleton.created_at})
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=500)
 
