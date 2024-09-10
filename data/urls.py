@@ -10,7 +10,7 @@ from django.urls import path
 from .views import FormListCreateView, FormDetailView
 from .views import QuestionListCreateView, QuestionDetailView
 from .views import ResponseListCreateView, ResponseDetailView
-from .views import custom_get_method, custom_post_method
+from .views import custom_get_method, custom_post_method, all_open_forms
 
 urlpatterns = [
     path('<str:hash>/form/', FormListCreateView.as_view(), name='form-list-create'),
@@ -21,4 +21,5 @@ urlpatterns = [
     path('<str:hash>/responses/<int:pk>', ResponseDetailView.as_view(), name='response-detail'),
     path('<str:hash>/voter/get-data', custom_get_method, name='form-get'),
     path('<str:hash>/voter/post-data', custom_post_method, name='form-post'),
+    path('voter/open-forms', all_open_forms, name='open-polls'),
 ]
