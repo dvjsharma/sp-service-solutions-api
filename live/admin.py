@@ -15,8 +15,8 @@ class InstanceAdmin(admin.ModelAdmin):
     Custom User admin settings.
     """
     list_display = ('user', 'instance_auth_type', 'name', 'description',
-                    'instance_status', 'created_at', 'last_modified', 'hash')
-    search_fields = ('name', 'description', 'user__username', 'hash', 'instance_auth_type')
+                    'instance_status', 'created_at', 'last_modified', 'hash', 'allowed_domains')
+    search_fields = ('name', 'description', 'user__username', 'hash', 'instance_auth_type', 'allowed_domains')
     list_filter = ('instance_status', 'created_at', 'last_modified', 'user')
     ordering = ('-created_at',)
     readonly_fields = ('hash', 'created_at', 'last_modified')
