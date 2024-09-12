@@ -81,7 +81,7 @@ class Instance(models.Model):
         Get the instance object by the hash.
         """
         return Instance.objects.get(hash=hash)
-    
+
     def getAllowedDomains(hash):
         """
         Get the allowed domains for the instance.
