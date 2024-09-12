@@ -21,7 +21,7 @@ class InstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instance
         fields = ['user', 'instance_auth_type', 'name', 'description', 'instance_status',
-                  'created_at', 'last_modified', 'hash']
+                  'created_at', 'last_modified', 'hash', 'allowed_domains']
         read_only_fields = ['hash', 'created_at', 'last_modified', 'user']
 
     def create(self, validated_data):
