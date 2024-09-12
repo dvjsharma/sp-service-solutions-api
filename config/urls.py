@@ -30,6 +30,6 @@ urlpatterns = [
     path(f"{API_BASE_PATH}auth/", include("core.urls")),
     path(f"{API_BASE_PATH}live/", include("live.urls")),
     path(f"{API_BASE_PATH}data/", include("data.urls")),
-    path("admin/", admin.site.urls)
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path("admin/", admin.site.urls)
 ]
