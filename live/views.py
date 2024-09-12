@@ -454,7 +454,7 @@ class ProviderAuthView(generics.CreateAPIView):
         redirect_uri = request.GET.get("redirect_uri")
         if redirect_uri not in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_URIS:
             return Response(
-                "redirect_uri must be in SOCIAL_AUTH_ALLOWED_REDIRECT_URIS",
+                data={"detail": "Invalid redirect URI"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         strategy = load_strategy(request)

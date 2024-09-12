@@ -13,6 +13,11 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+# TO DO: A better way to initialize the default value for allowed_domains.
+def default_allowed_domains():
+    return ["*"]
+
+
 TYPE_CHOICES = (
         (0x1 << 0, 'Open to All'),
         (0x1 << 1, 'Open within Ogranization'),
@@ -51,7 +56,7 @@ class Instance(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     instance_status = models.IntegerField(choices=STATUS_CHOICES, default=0x1 << 1)
-    allowed_domains = models.JSONField(null=True, blank=True, default=lambda: ["*"])
+    allowed_domains = models.JSONField(null=True, blank=True, default=default_allowed_domains)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     hash = models.CharField(max_length=16, unique=True, editable=False)
@@ -81,7 +86,7 @@ class Instance(models.Model):
         Get the instance object by the hash.
         """
         return Instance.objects.get(hash=hash)
-    
+
     def getAllowedDomains(hash):
         """
         Get the allowed domains for the instance.
