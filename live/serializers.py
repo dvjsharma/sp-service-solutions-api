@@ -21,7 +21,7 @@ class InstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instance
         fields = ['user', 'instance_auth_type', 'name', 'description', 'instance_status',
-                  'created_at', 'last_modified', 'hash']
+                  'created_at', 'last_modified', 'hash', 'allowed_domains']
         read_only_fields = ['hash', 'created_at', 'last_modified', 'user']
 
     def create(self, validated_data):
@@ -116,6 +116,9 @@ class CustomProviderAuthSerializer(serializers.Serializer):
         Create a social user if it doesn't exist or return the existing one.
         """
         instance = Instance.getExistingInstance(self.context.get("hash"))
+        allowed_domains = instance.allowed_domains
+        if allowed_domains != ["*"] and user.email.split("@")[1] not in allowed_domains:
+            raise serializers.ValidationError("User email domain is not allowed.")
         try:
             social_user = SocialUser.objects.get(username=user.email)
         except SocialUser.DoesNotExist:

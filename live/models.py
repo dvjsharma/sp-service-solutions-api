@@ -40,6 +40,7 @@ class Instance(models.Model):
     - name: Name of the instance, required.
     - description: Description of the instance, required.
     - instance_status: Status of the instance, required.
+    - allowed_domains: List of allowed email domains for the instance.
     - created_at: Timestamp of the instance creation.
     - last_modified: Timestamp of the last modification of the instance.
     - hash: Unique hash for the instance object.
@@ -50,6 +51,7 @@ class Instance(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     instance_status = models.IntegerField(choices=STATUS_CHOICES, default=0x1 << 1)
+    allowed_domains = models.JSONField(null=True, blank=True, default=lambda: ["*"])
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     hash = models.CharField(max_length=16, unique=True, editable=False)
@@ -79,6 +81,12 @@ class Instance(models.Model):
         Get the instance object by the hash.
         """
         return Instance.objects.get(hash=hash)
+
+    def getAllowedDomains(hash):
+        """
+        Get the allowed domains for the instance.
+        """
+        return Instance.objects.get(hash=hash).allowed_domains
 
 
 class SocialUser(models.Model):
