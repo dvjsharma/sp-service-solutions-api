@@ -12,6 +12,7 @@ from .views import InstanceCSVView, InstanceJSONView
 from .views import InstanceOrganizationView
 from .views import SocialUserTokenObtainPairView
 from .views import ProviderAuthView
+from .views import GoogleOAuthCallbackView
 
 urlpatterns = [
     path('instance/info', InstanceTypeStatusView.as_view(), name='instance-status'),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('instance/ORG/<str:hash>/', InstanceOrganizationView.as_view(), name='instance-orgs'),
     path('instance/ORG/<str:hash>/<str:username>', InstanceOrganizationView.as_view(), name='instance-orgs'),
     re_path(r"^(?P<hash>\w+)/(?P<provider>\S+)/$", ProviderAuthView.as_view(), name="provider-auth"),
+    path('google-oauth2/callback/', GoogleOAuthCallbackView.as_view(), name='google-oauth2-callback'),
 ]
