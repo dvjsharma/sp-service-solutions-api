@@ -207,5 +207,6 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': 'auth/reset-username/?uid={uid}&token={token}',
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True
 }
+FRONTEND_REDIRECT_URL = os.environ.get('FRONTEND_REDIRECT_URL', 'http://localhost:3000/selected-user-login')
 DOMAIN = os.environ.get('DOMAIN', 'http://localhost:3000')
 SITE_NAME = os.environ.get('SITE_NAME', 'SPAPI')
