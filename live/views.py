@@ -9,10 +9,13 @@ Author: Divij Sharma <divijs75@gmail.com>
 import jwt
 import datetime
 import pandas as pd
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from django.conf import settings
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from social_core.exceptions import AuthException
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -25,6 +28,7 @@ from .models import Instance, SocialUser
 from .serializers import InstanceSerializer
 from .serializers import SocialUserSerializer, SocialUserLoginSerializer
 from .serializers import CustomProviderAuthSerializer
+from .token import jwt as jwt_custom
 
 
 USER_SOCIAL_TYPE_OAUTH = 0x1 << 0
@@ -452,6 +456,7 @@ class ProviderAuthView(generics.CreateAPIView):
         Override GET request to authenticate a user with a custom provider.
         """
         redirect_uri = request.GET.get("redirect_uri")
+        instance_hash = self.kwargs["hash"]
         if redirect_uri not in settings.SOCIAL_AUTH_ALLOWED_REDIRECT_URIS:
             return Response(
                 "redirect_uri must be in SOCIAL_AUTH_ALLOWED_REDIRECT_URIS",
@@ -459,11 +464,15 @@ class ProviderAuthView(generics.CreateAPIView):
             )
         strategy = load_strategy(request)
         strategy.session_set("redirect_uri", redirect_uri)
+        # NOTE: "Storing the instance hash in the cache for 20 seconds"
+        cache.set("instance_hash", instance_hash, timeout=20)
 
         backend_name = self.kwargs["provider"]
         backend = load_backend(strategy, backend_name, redirect_uri=redirect_uri)
 
         authorization_url = backend.auth_url()
+        state = backend.get_session_state()
+        strategy.session_set("google-oauth2_state", state)
         return Response(data={"authorization_url": authorization_url})
 
     def perform_create(self, serializer):
@@ -485,3 +494,63 @@ class ProviderAuthView(generics.CreateAPIView):
         context = super().get_serializer_context()
         context['hash'] = self.kwargs['hash']
         return context
+
+
+class GoogleOAuthCallbackView(APIView):
+    """
+    View to handle the callback from Google OAuth2 and exchange the authorization code for an access token.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        code = request.GET.get("code")
+        state = request.GET.get("state")
+        hash = cache.get("instance_hash")
+
+        if not code or not state:
+            return Response({"details": "Missing code or state in the request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        strategy = load_strategy(request)
+        redirect_uri = strategy.session_get("redirect_uri")
+        backend = load_backend(strategy=strategy, name='google-oauth2', redirect_uri=redirect_uri)
+
+        try:
+            user = backend.auth_complete()
+            social_user = self.get_or_create_social_user(user, hash)
+            token = jwt_custom.TokenStrategy.obtain(social_user)
+
+        except AuthException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        frontend_url = settings.FRONTEND_REDIRECT_URL + f"?access={token['access']}"
+        return redirect(frontend_url)
+
+    def get_or_create_social_user(self, user, hash):
+        """
+        Create a social user if it doesn't exist or return the existing one.
+        """
+        instance = Instance.getExistingInstance(hash)
+        allowed_domains = instance.allowed_domains
+
+        if allowed_domains != ["*"] and user.email.split("@")[1] not in allowed_domains:
+            raise PermissionDenied({"detail": "You are not allowed to access this form."})
+
+        try:
+            social_user = SocialUser.objects.get(username=user.email)
+        except SocialUser.DoesNotExist:
+            social_user = SocialUser.objects.create(
+                instance=instance,
+                user_social_type=0x1 << 0,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                username=user.email,
+                password=make_password(user.password)
+            )
+
+        try:
+            user_obj = User.objects.get(email=user.email)
+            user_obj.delete()
+        except User.DoesNotExist:
+            pass
+
+        return social_user
