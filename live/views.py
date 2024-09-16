@@ -464,14 +464,15 @@ class ProviderAuthView(generics.CreateAPIView):
             )
         strategy = load_strategy(request)
         strategy.session_set("redirect_uri", redirect_uri)
-        # NOTE: "Storing the instance hash in the cache for 20 seconds"
-        cache.set("instance_hash", instance_hash, timeout=20)
+        cache.set("redirect_uri", redirect_uri, timeout=60)
+        cache.set("instance_hash", instance_hash, timeout=60)
 
         backend_name = self.kwargs["provider"]
         backend = load_backend(strategy, backend_name, redirect_uri=redirect_uri)
 
         authorization_url = backend.auth_url()
         state = backend.get_session_state()
+        cache.set("google-oauth2_state", state, timeout=60)
         strategy.session_set("google-oauth2_state", state)
         return Response(data={"authorization_url": authorization_url})
 
@@ -507,15 +508,28 @@ class GoogleOAuthCallbackView(APIView):
         state = request.GET.get("state")
         hash = cache.get("instance_hash")
 
+        instance = Instance.getExistingInstance(hash)
+
         if not code or not state:
             return Response({"details": "Missing code or state in the request"}, status=status.HTTP_400_BAD_REQUEST)
 
         strategy = load_strategy(request)
-        redirect_uri = strategy.session_get("redirect_uri")
+        redirect_uri = cache.get("redirect_uri")
         backend = load_backend(strategy=strategy, name='google-oauth2', redirect_uri=redirect_uri)
+        strategy.session_set("google-oauth2_state", cache.get("google-oauth2_state"))
 
         try:
             user = backend.auth_complete()
+            allowed_domains = instance.allowed_domains
+            if allowed_domains != ["*"] and user.email.split("@")[1] not in allowed_domains:
+                try:
+                    user_obj = User.objects.get(email=user.email)
+                    user_obj.delete()
+                except User.DoesNotExist:
+                    pass
+                frontend_permissiondenied_url = settings.FRONTEND_REDIRECT_URL_NOTALLOWED
+                return redirect(frontend_permissiondenied_url)
+
             social_user = self.get_or_create_social_user(user, hash)
             token = jwt_custom.TokenStrategy.obtain(social_user)
 
@@ -530,10 +544,6 @@ class GoogleOAuthCallbackView(APIView):
         Create a social user if it doesn't exist or return the existing one.
         """
         instance = Instance.getExistingInstance(hash)
-        allowed_domains = instance.allowed_domains
-
-        if allowed_domains != ["*"] and user.email.split("@")[1] not in allowed_domains:
-            raise PermissionDenied({"detail": "You are not allowed to access this form."})
 
         try:
             social_user = SocialUser.objects.get(username=user.email)

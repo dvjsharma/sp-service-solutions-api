@@ -208,5 +208,6 @@ DJOSER = {
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True
 }
 FRONTEND_REDIRECT_URL = os.environ.get('FRONTEND_REDIRECT_URL', 'http://localhost:3000/selected-user-login')
+FRONTEND_REDIRECT_URL_NOTALLOWED = os.environ.get('FRONTEND_REDIRECT_URL_NOTALLOWED', 'http://localhost:3000/blank-error')
 DOMAIN = os.environ.get('DOMAIN', 'http://localhost:3000')
 SITE_NAME = os.environ.get('SITE_NAME', 'SPAPI')
